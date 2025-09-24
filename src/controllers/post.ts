@@ -90,7 +90,7 @@ export const deletePost = async (req: Request, res: Response) => {
       { postId }
     );
 
-    if (result.summary.counters.nodesDeleted === 0) {
+    if (result.summary.counters.nodesDeleted() === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
     }
 

@@ -181,7 +181,7 @@ export const deleteComment = async (req: Request, res: Response) => {
       { id }
     );
 
-    if (result.summary.counters.nodesDeleted === 0) {
+    if (result.summary.counters.nodesDeleted() === 0) {
       return res.status(404).json({ success: false, message: "Comment not found" });
     }
 
