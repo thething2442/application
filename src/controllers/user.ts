@@ -15,6 +15,12 @@ export const UserCreation = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Missing required fields: username, email, clerkId" });
     }
 
+    // Check if user already exists by clerkId
+    const existingUser = await db.select().from(users).where(eq(users.clerkId, clerkId));
+    if (existingUser.length > 0) {
+      return res.status(409).json({ error: "User with this clerkId already exists" });
+    }
+
     const newUser = await db
       .insert(users)
       .values({
