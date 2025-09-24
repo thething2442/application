@@ -2,13 +2,13 @@ services:
   - type: web
     name: postproject-backend
     env: node
-    plan: free   # or starter, depending on your account
+    plan: starter  # Free plan may be too small for NestJS
     rootDir: market-backend
     region: oregon
     buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
+    startCommand: node --max-old-space-size=1024 ./dist/main.js
     envVars:
       - key: NODE_ENV
-        value: production
+        value: development
       - key: PORT
-        value: 10000
+        value: ${PORT}  # Let Render assign the port
