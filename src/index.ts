@@ -5,7 +5,6 @@ import { verifyWebhook } from '@clerk/express/webhooks'
 
 // User Controllers
 import { UserCreation } from './controllers/user';
-// Webhook Controllers
 
 
 // Post Controllers
@@ -34,9 +33,9 @@ application.post('/api/webhooks', express.raw({ type: 'application/json' }), asy
     console.log('Webhook payload:', evt.data)
 
     return res.send('Webhook received')
-  } catch (err) {
+  } catch (err:any) {
     console.error('Error verifying webhook:', err)
-    return res.status(400).send('Error verifying webhook')
+    return res.status(400).send(`Error verifying webhook: ${err.message}`)
   }
 })
 
