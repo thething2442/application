@@ -3,6 +3,7 @@ services:
     name: postproject-backend
     env: node
     plan: free   # or starter, depending on your account
+    rootDir: market-backend
     region: oregon
     buildCommand: npm install && npm run build
     startCommand: npm run start:prod
