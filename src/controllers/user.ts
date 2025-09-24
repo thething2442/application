@@ -2,27 +2,30 @@ import type { Request, Response } from "express";
 import db from "../dbconfiguration/db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import bcrypt from 'bcrypt';
 
 export const UserCreation = async (req: Request, res: Response) => {
   try {
-    const { username, email, clerkId } = req.body;
+    const { name, email, password } = req.body;
 
-    if (!username || !email || !clerkId) {
-      return res.status(400).json({ error: "Missing required fields: username, email, clerkId" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Missing required user data" });
     }
 
-    // Check if user already exists by clerkId
-    const existingUser = await db.select().from(users).where(eq(users.clerkId, clerkId));
+    // Check if user already exists by email
+    const existingUser = await db.select().from(users).where(eq(users.email, email));
     if (existingUser.length > 0) {
-      return res.status(409).json({ error: "User with this clerkId already exists" });
+      return res.status(409).json({ error: "User with this email already exists" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
 
     const newUser = await db
       .insert(users)
       .values({
-        username,
-        email,
-        clerkId,
+        username: name,
+        email: email,
+        hashedPassword: hashedPassword,
       })
       .returning();
 

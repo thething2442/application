@@ -28,11 +28,10 @@ export const users = sqliteTable("users", {
 	id: integer().primaryKey().notNull(),
 	username: text().notNull(),
 	email: text().notNull(),
+	hashedPassword: text(), // Add hashedPassword field
 	createdAt: integer("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-	clerkId: text("clerk_id").notNull(),
 },
 (table) => [
-	uniqueIndex("users_clerk_id_unique").on(table.clerkId),
 	uniqueIndex("users_email_unique").on(table.email),
 	uniqueIndex("users_username_unique").on(table.username),
 ]);
