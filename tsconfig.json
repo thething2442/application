@@ -1,25 +1,16 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "target": "ES2020",                          // Modern JS output
+    "module": "CommonJS",                        // For Node.js
+    "rootDir": "src",                            // Source folder
+    "outDir": "dist",                            // Build output
+    "strict": true,                              // Enable strict type checking
+    "esModuleInterop": true,                     // Allows import of CommonJS modules
+    "forceConsistentCasingInFileNames": true,   // File name case consistency
+    "skipLibCheck": true,                        // Skip type checks for node_modules
+    "resolveJsonModule": true,                   // Import JSON modules
+    "noImplicitAny": false                        // Optional, can relax strictness
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
