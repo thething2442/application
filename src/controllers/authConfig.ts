@@ -34,5 +34,6 @@ const authConfig = {
     strategy: "jwt" as const,
   },
   trustHost: true,
+  csrf: false,
 };
 export default authConfig
