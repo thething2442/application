@@ -12,7 +12,7 @@ export const clerkWebhookHandler = async (req: Request, res: Response) => {
       "svix-signature": req.headers["svix-signature"] as string,
     };
 
-    const wh = new Webhook(process.env.CLERK_WEBHOOK_SIGNING_SECRET!);
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET_KEY!);
     const evt = wh.verify(payloadString, svixHeaders);
 
     const { id, ...attributes } = (evt as any).data;
