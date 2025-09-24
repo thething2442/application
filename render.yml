@@ -6,7 +6,7 @@ services:
     rootDir: market-backend
     region: oregon
     buildCommand: npm install && npm run build
-    startCommand: node --max-old-space-size=1024 ./dist/main.js
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: development
