@@ -55,7 +55,7 @@ apiRouter.delete('/friends/:id', removeFriend);
 
 application.use('/api', apiRouter);
 
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000', 10);
 application.listen(port, () => {
   console.log(`Server connected on http://localhost:${port}`);
   console.log('\nRegistered API Endpoints:');
