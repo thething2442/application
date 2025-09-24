@@ -1,11 +1,11 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { verifyWebhook } from '@clerk/express/webhooks'
 
 // User Controllers
 import { UserCreation } from './controllers/user';
-
+// Webhook Controllers
+import { clerkWebhookHandler } from './controllers/webhook';
 
 // Post Controllers
 import { createPost, getPosts, getPostById, updatePost, deletePost } from './controllers/post';
@@ -21,23 +21,7 @@ const application = express();
 
 // The webhook needs the raw body to verify the signature.
 // This must be configured before express.json()
-application.post('/api/webhooks', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    const evt = await verifyWebhook(req)
-
-    // Do something with payload
-    // For this guide, log payload to console
-    const { id } = evt.data
-    const eventType = evt.type
-    console.log(`Received webhook with ID ${id} and event type of ${eventType}`)
-    console.log('Webhook payload:', evt.data)
-
-    return res.send('Webhook received')
-  } catch (err:any) {
-    console.error('Error verifying webhook:', err)
-    return res.status(400).send(`Error verifying webhook: ${err.message}`)
-  }
-})
+application.post('/api/webhooks', express.raw({ type: 'application/json' }), clerkWebhookHandler);
 
 application.use(express.json());
 application.use(cors({
