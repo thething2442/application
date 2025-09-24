@@ -1,28 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
-// User Controllers
 import { UserCreation } from './controllers/user';
-// Webhook Controllers
 import { clerkWebhookHandler } from './controllers/webhook';
-
-// Post Controllers
 import { createPost, getPosts, getPostById, updatePost, deletePost } from './controllers/post';
-
-// Comment Controllers
 import { createComment, getCommentsForPost, updateComment, deleteComment } from './controllers/comment';
-
-// Friend Controllers
 import { addFriend, getFriends, getFriendRequests, updateFriendStatus, removeFriend } from './controllers/friend';
-
 dotenv.config();
 const application = express();
-
-// The webhook needs the raw body to verify the signature.
-// This must be configured before express.json()
 application.post('/api/webhooks', express.raw({ type: 'application/json' }), clerkWebhookHandler);
-
 application.use(express.json());
 application.use(cors({
   origin:[
@@ -41,20 +27,15 @@ apiRouter.get('/posts', getPosts);
 apiRouter.get('/posts/:id', getPostById);
 apiRouter.put('/posts/:id', updatePost);
 apiRouter.delete('/posts/:id', deletePost);
-
-// Comment routes
 apiRouter.post('/comments', createComment);
 apiRouter.get('/posts/:postId/comments', getCommentsForPost);
 apiRouter.put('/comments/:id', updateComment);
 apiRouter.delete('/comments/:id', deleteComment);
-
-// Friend routes
 apiRouter.post('/friends', addFriend);
 apiRouter.get('/users/:userId/friends', getFriends);
 apiRouter.get('/users/:userId/friend-requests', getFriendRequests);
 apiRouter.put('/friends/:id', updateFriendStatus);
 apiRouter.delete('/friends/:id', removeFriend);
-
 application.use('/api', apiRouter);
 
 const port = parseInt(process.env.PORT || '', 10) || 3000;

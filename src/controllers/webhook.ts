@@ -1,34 +1,37 @@
-import type { Request, Response } from "express";
-import { verifyWebhook } from '@clerk/express/webhooks';
-import db from '../dbconfiguration/db'; // Your database client
-import * as schema from '../drizzle/schema'
+import { Request, Response } from 'express';
+import { Webhook } from 'svix';
 
 export const clerkWebhookHandler = async (req: Request, res: Response) => {
   try {
-    const evt = await verifyWebhook(req);
-    const { id } = evt.data;
-    const eventType = evt.type;
-    console.log(`Received webhook with ID ${id} and event type of ${eventType}`);
+    const payloadString = req.body.toString();
+
+    // cast headers into the type svix expects
+    const svixHeaders = {
+      "svix-id": req.headers["svix-id"] as string,
+      "svix-timestamp": req.headers["svix-timestamp"] as string,
+      "svix-signature": req.headers["svix-signature"] as string,
+    };
+
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SIGNING_SECRET!);
+    const evt = wh.verify(payloadString, svixHeaders);
+
+    const { id, ...attributes } = (evt as any).data;
+    const eventType = (evt as any).type;
 
     if (eventType === 'user.created') {
-      const userData = evt.data;
-
-      // Insert into your DB
-      await db.insert(schema.users).values({
-        clerkId: userData.id,
-        email: userData.email_addresses?.[0]?.email_address || '',
-        username: userData.first_name || 'Unknown',
-        createdAt: Date.now(), // number
-      });
-      
-      
-
-      console.log(`User ${userData.id} saved to database`);
+      console.log(`User ${id} was ${eventType}`);
+      console.log(attributes);
+      // 👉 Insert into DB here
     }
 
-    return res.send('Webhook received');
+    res.status(200).json({
+      success: true,
+      message: 'Webhook received',
+    });
   } catch (err: any) {
-    console.error('Error verifying webhook:', err);
-    return res.status(400).send(`Error verifying webhook: ${err.message}`);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 };

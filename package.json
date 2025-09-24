@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/thething2442/application#readme",
   "dependencies": {
+    "@clerk/backend": "^2.15.0",
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/express": "^1.7.33",
     "@libsql/client": "^0.15.15",
