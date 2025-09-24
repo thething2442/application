@@ -11,10 +11,6 @@
     "build": "tsc",
     "start:prod": "node dist/index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/thething2442/application.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
