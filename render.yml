@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: postproject-backend
+    env: node
+    plan: free   # 512 MB RAM
+    rootDir: market-backend
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: node --max_old_space_size=480 dist/main.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
