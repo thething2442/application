@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: postproject-backend
+    env: node
+    plan: free   # or starter, depending on your account
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
