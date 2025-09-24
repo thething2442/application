@@ -1,74 +1,104 @@
 import type { Request, Response } from "express";
-import db from "../dbconfiguration/db";
-import { posts } from "../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import driver from "../dbconfiguration/db";
+
+type PostProps = {
+  userId: string;
+  content: string;
+};
 
 export const createPost = async (req: Request, res: Response) => {
+  const { userId, content } = req.body as PostProps;
+  const session = driver.session();
+
   try {
-    const { userId, content } = req.body;
-    if (!userId || !content) {
-      return res.status(400).json({ error: "Missing required fields: userId, content" });
+    const result = await session.run(
+      `
+      MATCH (u:Person {id:$userId})
+      CREATE (u)-[:WROTE]->(p:Post {
+        id: randomUUID(),
+        content:$content,
+        createdAt:datetime()
+      })
+      RETURN p
+      `,
+      { userId, content }
+    );
+
+    if (result.records.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
-    const newPost = await db.insert(posts).values({ userId, content }).returning();
-    res.status(201).json(newPost[0]);
+
+    const postNode = result.records[0].get("p").properties;
+    res.status(201).json({
+      success: true,
+      post: {
+        id: postNode.id,
+        content: postNode.content,
+        createdAt: postNode.createdAt,
+      },
+    });
   } catch (error) {
-    console.error("Error creating post:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error(error);
+    res.status(500).json({ success: false, error: "Failed to create post" });
+  } finally {
+    await session.close();
   }
 };
-
 export const getPosts = async (req: Request, res: Response) => {
+  const session = driver.session({ database: process.env.NEO4J_DATABASE });
   try {
-    const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt));
-    res.status(200).json(allPosts);
-  } catch (error) {
-    console.error("Error getting posts:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+    const result = await session.run(`
+      MATCH (p:Post)<-[:WROTE]-(u:Person)
+      RETURN p, u
+      ORDER BY p.createdAt DESC
+      LIMIT 100
+    `);
 
-export const getPostById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const post = await db.select().from(posts).where(eq(posts.id, Number(id)));
-    if (post.length === 0) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-    res.status(200).json(post[0]);
-  } catch (error) {
-    console.error("Error getting post by id:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+    const posts = result.records.map(r => {
+      const postNode = r.get("p").properties;
+      const authorNode = r.get("u").properties;
+      return {
+        id: postNode.id,
+        content: postNode.content,
+        createdAt: postNode.createdAt,
+        author: {
+          id: authorNode.id,
+          username: authorNode.username,
+        },
+      };
+    });
 
-export const updatePost = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { content } = req.body;
-    if (!content) {
-      return res.status(400).json({ error: "Missing required field: content" });
-    }
-    const updatedPost = await db.update(posts).set({ content }).where(eq(posts.id, Number(id))).returning();
-    if (updatedPost.length === 0) {
-        return res.status(404).json({ error: "Post not found" });
-    }
-    res.status(200).json(updatedPost[0]);
-  } catch (error) {
-    console.error("Error updating post:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(200).json({ success: true, posts });
+  } catch (err) {
+    console.error("Failed to fetch posts:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch posts" });
+  } finally {
+    await session.close();
   }
 };
 
 export const deletePost = async (req: Request, res: Response) => {
+  const { id: postId } = req.params;
+  const session = driver.session();
+
   try {
-    const { id } = req.params;
-    const deletedPost = await db.delete(posts).where(eq(posts.id, Number(id))).returning();
-    if (deletedPost.length === 0) {
-        return res.status(404).json({ error: "Post not found" });
+    const result = await session.run(
+      `
+      MATCH (p:Post {id: $postId})
+      DETACH DELETE p
+      `,
+      { postId }
+    );
+
+    if (result.summary.counters.nodesDeleted === 0) {
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
-    res.status(200).json({ message: "Post deleted successfully" });
+
+    res.status(200).json({ success: true, message: "Post deleted successfully" });
   } catch (error) {
-    console.error("Error deleting post:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error(error);
+    res.status(500).json({ success: false, error: "Failed to delete post" });
+  } finally {
+    await session.close();
   }
 };
