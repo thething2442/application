@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Webhook } from 'svix';
-
+import dotenv from 'dotenv'
+dotenv.config();
 export const clerkWebhookHandler = async (req: Request, res: Response) => {
   try {
     const payloadString = req.body.toString();
