@@ -76,23 +76,26 @@ export const getPosts = async (req: Request, res: Response) => {
     await session.close();
   }
 };
-
 export const deletePost = async (req: Request, res: Response) => {
   const { id: postId } = req.params;
-  const session = driver.session();
+  const session = driver.session({ database: process.env.NEO4J_DATABASE });
 
   try {
-    const result = await session.run(
-      `
-      MATCH (p:Post {id: $postId})
-      DETACH DELETE p
-      `,
+    // First, check if the post exists
+    const check = await session.run(
+      `MATCH (p:Post {id: $postId}) RETURN p`,
       { postId }
     );
 
-    if (result.summary.counters.nodesDeleted() === 0) {
+    if (check.records.length === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
     }
+
+    // Delete the post
+    await session.run(
+      `MATCH (p:Post {id: $postId}) DETACH DELETE p`,
+      { postId }
+    );
 
     res.status(200).json({ success: true, message: "Post deleted successfully" });
   } catch (error) {

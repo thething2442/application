@@ -4,8 +4,8 @@ import cors from "cors";
 import driver from "./dbconfiguration/db"; // Neo4j driver
 import keepNeo4jAlive from "./functions/helper";
 import { createUser, loginUser } from "./controllers/user";
-import { createPost ,getPosts} from "./controllers/post";
-import { createComment, replyToComment, getPostComments, updateComment, deleteComment } from "./controllers/comment";
+import { createPost ,getPosts,deletePost} from "./controllers/post";
+import { createComment, replyToComment, getPostComments } from "./controllers/comment";
 import createDummyPost from "./functions/dummy";
 import helmet from "helmet";
 dotenv.config();
@@ -51,9 +51,8 @@ apiRouter.post("/posts", createPost);
 apiRouter.post("/comments", createComment);
 apiRouter.post("/comments/reply", replyToComment); // reply to comment
 apiRouter.get("/posts/:postId/comments", getPostComments);
-apiRouter.put("/comments/:id", updateComment);
-apiRouter.delete("/comments/:id", deleteComment);
 apiRouter.get("/posts", getPosts);
+apiRouter.delete('/post/:id',deletePost)
 // Webhook route
 apiRouter.post("/webhooks", (req, res) => {
   console.log("Webhook received:", req.body);
@@ -136,8 +135,6 @@ const startServer = async () => {
     console.log("POST   /api/comments");
     console.log("POST   /api/comments/reply");
     console.log("GET    /api/posts/:postId/comments");
-    console.log("PUT    /api/comments/:id");
-    console.log("DELETE /api/comments/:id");
     console.log("POST   /api/webhooks");
     console.log("-------------------------");
   });
