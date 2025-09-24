@@ -20,6 +20,7 @@
   "homepage": "https://github.com/thething2442/application#readme",
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",
+    "@libsql/client": "^0.15.15",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",
