@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { Webhook } from 'svix';
-import dotenv from 'dotenv'
-dotenv.config();
+import db from '../dbconfiguration/db';
+import * as schema from '../drizzle/schema';
+
 export const clerkWebhookHandler = async (req: Request, res: Response) => {
   try {
     const payloadString = req.body.toString();
 
-    // cast headers into the type svix expects
     const svixHeaders = {
       "svix-id": req.headers["svix-id"] as string,
       "svix-timestamp": req.headers["svix-timestamp"] as string,
@@ -14,15 +14,20 @@ export const clerkWebhookHandler = async (req: Request, res: Response) => {
     };
 
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET_KEY!);
-    const evt = wh.verify(payloadString, svixHeaders);
+    const evt = wh.verify(payloadString, svixHeaders) as any;
 
-    const { id, ...attributes } = (evt as any).data;
-    const eventType = (evt as any).type;
+    const eventType = evt.type;
 
     if (eventType === 'user.created') {
-      console.log(`User ${id} was ${eventType}`);
-      console.log(attributes);
-      // 👉 Insert into DB here
+      const user = evt.data;
+
+      await db.insert(schema.users).values({
+        clerkId: user.id,
+        email: user.email_addresses?.[0]?.email_address || "",
+        username: user.username || user.first_name || "anonymous",
+      });
+
+      console.log(`✅ User ${user.id} saved to database`);
     }
 
     res.status(200).json({
@@ -30,6 +35,7 @@ export const clerkWebhookHandler = async (req: Request, res: Response) => {
       message: 'Webhook received',
     });
   } catch (err: any) {
+    console.error("❌ Webhook error:", err.message);
     res.status(400).json({
       success: false,
       message: err.message,
